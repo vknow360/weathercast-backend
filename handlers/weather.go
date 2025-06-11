@@ -59,7 +59,7 @@ func GetNews(c *gin.Context) {
 					Enclosure: item.Enclosure.Url,
 					Categories: func() []string {
 						cats := []string{"weather"}
-						if strings.Contains(item.Title, "climate change") {
+						if strings.Contains(item.Title, "climate") {
 							cats = append(cats, "climate")
 						}
 						return cats

@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"vknow360/ie"
 	"vknow360/toi"
 
@@ -12,11 +13,12 @@ import (
 )
 
 type NewsItem struct {
-	Title     string `json:"title"`
-	Link      string `json:"link"`
-	PubDate   string `json:"pubDate"`
-	Enclosure string `json:"enclosure"`
-	Source    string `json:"source"`
+	Title      string   `json:"title"`
+	Link       string   `json:"link"`
+	PubDate    string   `json:"pubDate"`
+	Categories []string `json:"categories"`
+	Enclosure  string   `json:"enclosure"`
+	Source     string   `json:"source"`
 }
 
 func Status(c *gin.Context) {
@@ -55,7 +57,14 @@ func GetNews(c *gin.Context) {
 					Link:      item.Link,
 					PubDate:   item.PubDate,
 					Enclosure: item.Enclosure.Url,
-					Source:    "Times of India",
+					Categories: func() []string {
+						cats := []string{"weather"}
+						if strings.Contains(item.Title, "climate change") {
+							cats = append(cats, "climate")
+						}
+						return cats
+					}(),
+					Source: "Times of India",
 				})
 			}
 		} else {
@@ -65,13 +74,20 @@ func GetNews(c *gin.Context) {
 			if err != nil {
 				log.Fatal(err)
 			}
+			categories := []string{}
+			if index == 1 {
+				categories = append(categories, "weather")
+			} else {
+				categories = append(categories, "climate")
+			}
 			for _, item := range ie.Channel.Items {
 				news = append(news, NewsItem{
-					Title:     item.Title,
-					Link:      item.Link,
-					PubDate:   item.PubDate,
-					Enclosure: item.MediaContent.URL,
-					Source:    "Indian Express",
+					Title:      item.Title,
+					Link:       item.Link,
+					PubDate:    item.PubDate,
+					Categories: categories,
+					Enclosure:  item.MediaContent.URL,
+					Source:     "Indian Express",
 				})
 			}
 		}
